@@ -172,19 +172,19 @@ let transDataSearch = function() {
     .prompt({
       name: 'Name',
       type: 'input',
-      message: 'Which cardholder do you want to see data for?'
+      message: 'What employee would you like to see transactions for?'
     })
     .then(function(answer) {
-      let query =
-        'SELECT one_card.Name,one_card.Source_Currency_Amount,one_card.Posting_Date FROM one_card ';
+      var query =
+        'SELECT one_card.Name, one_card.Posting_Date, one_card.Source_Currency_Amount, employee_data.department, employee_Employee_Number ';
       query +=
-        'INNER JOIN employee_data ON (one_card.Name = employee_data.Name) ';
+        'FROM one_card INNER JOIN employee_data ON (one_card.Name = employee_data.Name ';
       query +=
-        'WHERE (one_card.Name = ? AND employee_data.Name = ?) ORDER BY employee_data.Name ';
+        '= top5000.year) WHERE (top_albums.artist = ? AND top5000.artist = ?) ORDER BY top_albums.year, top_albums.position';
 
-      connection.query(query, [answer.Name, answer.NAME], function(err, res) {
-        console.log(res.length + ' Matches Found!');
-        for (let i = 0; i < res.length; i++) {
+      connection.query(query, [answer.Name, answer.Name], function(err, res) {
+        console.log(res.length + ' matches found!');
+        for (var i = 0; i < res.length; i++) {
           console.log(
             'Employee Name: ' +
               res[i].Name +
@@ -193,9 +193,12 @@ let transDataSearch = function() {
               '\nPosting Date: ' +
               res[i].Posting_Date +
               '\nDepartment: ' +
-              res[i].Department
+              res[i].Department +
+              '\nEmployee Number: ' +
+              res[i].Employee_Number
           );
         }
+
         runSearch();
       });
     });
