@@ -23,9 +23,10 @@ let runSearch = function() {
       message: 'What would you like to do?',
       choices: [
         'Find transaction by name',
-        'Find vendor by merchant name',
+        'Find merchant city and state by merchant name',
         'Find transactions by merchant name',
-        'Find transaction and department of employee'
+        'Find transaction and department of employee',
+        'List employee, source currency amount, posting date and department'
       ]
     })
     .then(function(answer) {
@@ -33,7 +34,7 @@ let runSearch = function() {
         case 'Find transaction by name':
           transactionSearch();
           break;
-        case 'Find vendor by merchant name':
+        case 'Find merchant city and state by merchant name':
           merchantSearch();
           break;
         case 'Find transactions by merchant name':
@@ -41,6 +42,9 @@ let runSearch = function() {
           break;
         case 'Find transaction and department of employee':
           transAndDepartmentSearch();
+          break;
+        case 'List employee, source currency amount, posting date and department':
+          transDataSearch();
           break;
       }
     });
@@ -143,7 +147,56 @@ let transAndDepartmentSearch = function() {
     })
     .then(function(answer) {
       let query =
-        'SELECT employee_data.Name,employee_data.Department FROM employee_data';
-      query += 'INNER JOIN ';
+        'SELECT employee_data.Name,employee_data.Department FROM employee_data ';
+      query += 'INNER JOIN one_card ON (employee_data.Name = one_card.Name) ';
+      query +=
+        'WHERE (employee_data.Name = ? AND one_card.Name = ?) ORDER BY one_card.Name ';
+
+      connection.query(query, [answer.Name, answer.Name], function(err, res) {
+        console.log(res.length + ' Matches Found!');
+        for (let i = 0; i < res.length; i++) {
+          console.log(
+            'Employee Name: ' +
+              res[i].Name +
+              '\nDepartment: ' +
+              res[i].Department
+          );
+        }
+        runSearch();
+      });
+    });
+};
+
+let transDataSearch = function() {
+  inquirer
+    .prompt({
+      name: 'Name',
+      type: 'input',
+      message: 'Which cardholder do you want to see data for?'
+    })
+    .then(function(answer) {
+      let query =
+        'SELECT one_card.Name,one_card.Source_Currency_Amount,one_card.Posting_Date FROM one_card ';
+      query +=
+        'INNER JOIN employee_data ON (one_card.Name = employee_data.Name) ';
+      query +=
+        'WHERE (one_card.Name = ? AND employee_data.Name = ?) ORDER BY employee_data.Name ';
+
+      connection.query(query, [answer.Name, answer.NAME], function(err, res) {
+        console.log(res.length + ' Matches Found!');
+        for (let i = 0; i < res.length; i++) {
+          console.log(
+            'Employee Name: ' +
+              res[i].Name +
+              '\nTransaction Value: ' +
+              res[i].Source_Currency_Amount +
+              '\nPosting Date: ' +
+              res[i].Posting_Date +
+              '\nDepartment: ' +
+              res[i].Department
+          );
+        }
+        runSearch();
+      });
     });
 };
